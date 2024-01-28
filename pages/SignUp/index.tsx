@@ -1,13 +1,16 @@
-import React, { useCallback, useState } from 'react';
-import { Button, Error, Form, Header, Input, Label, LinkContainer } from './styles';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Button, Error, Form, Header, Input, Label, LinkContainer, Success } from './styles';
 import { useInput } from '@hooks/useInput';
+import axios from 'axios';
 
 const SignUp = () => {
-  const [email, onChangeEmail, setEmail] = useInput('');
-  const [nickname, onChangeNickname, setNickname] = useInput('');
+  const [email, onChangeEmail] = useInput('');
+  const [nickname, onChangeNickname] = useInput('');
   const [password, , setPassword] = useInput('');
   const [passwordCheck, , setPasswordCheck] = useInput('');
   const [mismatchError, setMismatchError] = useState(false);
+  const [signUpError, setSignUpError] = useState('');
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const onChangePassword = useCallback(
     (e) => {
@@ -17,16 +20,35 @@ const SignUp = () => {
     [passwordCheck],
   );
 
-  const onChangePasswordCheck = useCallback((e) => {
-    setPasswordCheck(e.target.value);
-    setMismatchError(e.target.value !== password);
-  }, []);
+  const onChangePasswordCheck = useCallback(
+    (e) => {
+      setPasswordCheck(e.target.value);
+      setMismatchError(e.target.value !== password);
+    },
+    [password],
+  );
 
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      if (!mismatchError) {
-        console.log(email, nickname, password, passwordCheck);
+      if (!mismatchError && nickname) {
+        setSignUpError('');
+        setSignUpSuccess(false);
+        axios
+          .post('http://localhost:3095/api/users', {
+            email,
+            nickname,
+            password,
+          })
+          .then((res) => {
+            console.log(res);
+            setSignUpSuccess(true);
+          })
+          .catch((err) => {
+            console.log(err.response);
+            setSignUpError(err.response.data);
+          })
+          .finally(() => {});
       }
     },
     [email, nickname, password, passwordCheck],
@@ -67,8 +89,8 @@ const SignUp = () => {
           </div>
           {mismatchError && <Error>비밀번호가 일치하지 않습니다.</Error>}
           {!nickname && <Error>닉네임을 입력해주세요.</Error>}
-          {/* {signUpError && <Error>이미 가입된 이메일입니다.</Error>} */}
-          {/* {signUpSuccess && <Success>회원가입되었습니다! 로그인해주세요.</Success>} */}
+          {signUpError && <Error>{signUpError}</Error>}
+          {signUpSuccess && <Success>회원가입되었습니다! 로그인해주세요.</Success>}
         </Label>
         <Button type="submit">회원가입</Button>
       </Form>
