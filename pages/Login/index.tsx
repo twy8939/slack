@@ -3,7 +3,7 @@ import { Button, Error, Form, Header, Input, Label, LinkContainer } from '@pages
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
 import React, { useCallback, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 import useSWR from 'swr';
 
 const LogIn = () => {
@@ -23,7 +23,7 @@ const LogIn = () => {
             withCredentials: true,
           },
         )
-        .then(() => {
+        .then((res) => {
           mutate();
         })
         .catch((error) => {
@@ -33,6 +33,10 @@ const LogIn = () => {
     },
     [email, password, mutate],
   );
+
+  if (userData) {
+    return <Redirect to="/workspace/channel" />;
+  }
 
   return (
     <div id="container">
