@@ -21,24 +21,79 @@ import {
 } from './styles';
 import { Link } from 'react-router-dom';
 import gravatar from 'gravatar';
-import loadable from '@loadable/component';
 import Channel from '@pages/Channel';
 import DirectMessage from '@pages/DirectMessage';
 import Menu from '@components/Menu';
+import { IUser } from '@typings/db';
+import { Button, Input, Label } from '@pages/SignUp/styles';
+import { useInput } from '@hooks/useInput';
+import Modal from '@components/Modal';
+import CreateChannelModal from '@components/CreateChannelModal';
 
-const Workspace: React.FC = ({ children }) => {
-  const { data: userData, error, mutate } = useSWR('/api/users', fetcher);
+const Workspace: React.VFC = () => {
+  const { data: userData, error, mutate } = useSWR<IUser | false>('/api/users', fetcher);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [newWorkspace, onNewWorkspaceChange, setNewWorkspace] = useInput('');
+  const [newUrl, onNewUrlChange, setNewUrl] = useInput('');
   const onLogOut = () => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then((res) => {
       mutate();
     });
   };
 
-  const onClickUserProfile = () => {
+  const onClickUserProfile = (e: React.MouseEvent<HTMLDivElement | HTMLButtonElement>) => {
+    e.stopPropagation();
     setShowUserMenu((curr) => !curr);
   };
-  const onClickCreateWorkspace = () => {};
+  const onClickCreateWorkspace = () => {
+    setShowCreateWorkspaceModal(true);
+  };
+
+  const onCreateWorkSpace = (e: React.MouseEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!newWorkspace || !newWorkspace.trim()) return;
+    if (!newUrl || !newUrl.trim()) return;
+    axios
+      .post(
+        '/api/workspaces',
+        {
+          workspace: newWorkspace,
+          url: newUrl,
+        },
+        {
+          withCredentials: true,
+        },
+      )
+      .then(() => {
+        mutate();
+        onReset();
+      })
+      .catch((error: any) => {
+        console.dir(error);
+      });
+  };
+
+  const onCloseModal = () => {
+    onReset();
+  };
+
+  const toggleWorkspaceModal = () => {
+    setShowWorkspaceModal((curr) => !curr);
+  };
+
+  const onClickAddChannel = () => {
+    setShowCreateChannelModal(true);
+  };
+
+  const onReset = () => {
+    setShowCreateWorkspaceModal(false);
+    setShowCreateChannelModal(false);
+    setNewWorkspace('');
+    setNewUrl('');
+  };
 
   if (!userData) return <Redirect to="/login" />;
 
@@ -50,7 +105,7 @@ const Workspace: React.FC = ({ children }) => {
             <span onClick={onClickUserProfile}>
               <ProfileImg src={gravatar.url(userData.nickname, { s: '28px', d: 'retro' })} alt={userData.nickname} />
               {showUserMenu && (
-                <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onClickUserProfile}>
+                <Menu style={{ right: 0, top: 38 }} onCloseModal={onClickUserProfile}>
                   <ProfileModal>
                     <img src={gravatar.url(userData.nickname, { s: '36px', d: 'retro' })} alt={userData.nickname} />
                     <div>
@@ -67,11 +122,26 @@ const Workspace: React.FC = ({ children }) => {
       </Header>
       <WorkspaceWrapper>
         <Workspaces>
+          {userData?.Workspaces.map((ws) => {
+            return (
+              <Link key={ws.id} to={`/workspace/${12}/channel/일반`}>
+                <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
+              </Link>
+            );
+          })}
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName>WorkspaceName</WorkspaceName>
-          <MenuScroll>menu scroll</MenuScroll>
+          <WorkspaceName onClick={toggleWorkspaceModal}>slack</WorkspaceName>
+          <MenuScroll>
+            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
+              <WorkspaceModal>
+                <h2>Slack</h2>
+                <button onClick={onClickAddChannel}>채널 만들기</button>
+                <button onClick={onLogOut}>로그아웃</button>
+              </WorkspaceModal>
+            </Menu>
+          </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
@@ -80,6 +150,20 @@ const Workspace: React.FC = ({ children }) => {
           </Switch>
         </Chats>
       </WorkspaceWrapper>
+      <Modal show={showCreateWorkspaceModal} onCloseModal={onCloseModal}>
+        <form onSubmit={onCreateWorkSpace}>
+          <Label id="workspace-label">
+            <span>워크스페이스 이름</span>
+            <Input id="workspace" value={newWorkspace} onChange={onNewWorkspaceChange} />
+          </Label>
+          <Label id="workspace-label">
+            <span>워크스페이스 url</span>
+            <Input id="workspace" value={newUrl} onChange={onNewUrlChange} />
+          </Label>
+          <Button type="submit">생성하기</Button>
+        </form>
+      </Modal>
+      <CreateChannelModal show={showCreateChannelModal} onCloseModal={onCloseModal} />
     </div>
   );
 };

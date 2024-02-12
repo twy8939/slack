@@ -2,16 +2,20 @@ import React from 'react';
 import { CloseModalButton, CreateMenu } from './styles';
 
 interface Props {
-  show: boolean;
-  onCloseModal: () => void;
+  show?: boolean;
+  onCloseModal: (e: React.MouseEvent<HTMLDivElement | HTMLButtonElement>) => void;
   style: React.CSSProperties;
   closeButton?: boolean;
 }
 
-const Menu: React.FC<Props> = ({ children, style, show, closeButton, onCloseModal }) => {
+const Menu: React.FC<Props> = ({ show, children, style, closeButton, onCloseModal }) => {
   const stopPropagation = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
   };
+
+  if (!show) {
+    return null;
+  }
 
   return (
     <CreateMenu onClick={onCloseModal}>
