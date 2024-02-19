@@ -1,9 +1,9 @@
 import { CollapseButton } from '@components/DMList/styles';
-import EachChannel from '@components/EachChannel';
 import { IChannel, IUser } from '@typings/db';
 import fetcher from '@utils/fetcher';
 import React, { FC, useCallback, useState } from 'react';
 import { useParams } from 'react-router';
+import { NavLink } from 'react-router-dom';
 import useSWR from 'swr';
 
 interface Props {
@@ -38,7 +38,16 @@ const ChannelList: FC<Props> = () => {
       <div>
         {!channelCollapse &&
           channelData?.map((channel) => {
-            return <EachChannel key={channel.id} channel={channel} />;
+            return (
+              <NavLink
+                key={channel.name}
+                activeClassName="selected"
+                to={`/workspace/${workspace}/channel/${channel.name}`}
+              >
+                <span># {channel.name}</span>
+                {<span className="count">1</span>}
+              </NavLink>
+            );
           })}
       </div>
     </>

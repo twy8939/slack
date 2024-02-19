@@ -32,6 +32,7 @@ import CreateChannelModal from '@components/CreateChannelModal';
 import InviteWorkspaceModal from '@components/inviteWorkspaceModal';
 import InviteChannelModal from '@components/inviteChannelModal';
 import DMList from '@components/DMList';
+import ChannelList from '@components/ChannelList';
 
 const Workspace: React.VFC = () => {
   const { workspace } = useParams<{ workspace: string }>();
@@ -159,7 +160,7 @@ const Workspace: React.VFC = () => {
                 <button onClick={onLogOut}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {/* <ChannelList userData={userData} /> */}
+            <ChannelList />
             <DMList />
             {channelData?.map((v) => (
               <div>{v.name}</div>
