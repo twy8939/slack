@@ -17,10 +17,10 @@ const InviteChannelModal: FC<Props> = ({ show, onCloseModal, setShowInviteChanne
   const { workspace, channel } = useParams<{ workspace: string; channel: string }>();
   const [newMember, onChangeNewMember, setNewMember] = useInput('');
   const { data: userData } = useSWR<IUser>('/api/users', fetcher);
-  const { mutate: revalidateMembers } = useSWR<IUser[]>(
-    userData ? `/api/workspaces/${workspace}/channels/${channel}/members` : null,
-    fetcher,
-  );
+  // const { mutate: revalidateMembers } = useSWR<IUser[]>(
+  //   userData ? `/api/workspaces/${workspace}/channels/${channel}/members` : null,
+  //   fetcher,
+  // );
 
   const onInviteMember = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -32,7 +32,7 @@ const InviteChannelModal: FC<Props> = ({ show, onCloseModal, setShowInviteChanne
         email: newMember,
       })
       .then(() => {
-        revalidateMembers();
+        // revalidateMembers();
         setShowInviteChannelModal(false);
         setNewMember('');
       })
