@@ -29,6 +29,10 @@ import { Button, Input, Label } from '@pages/SignUp/styles';
 import { useInput } from '@hooks/useInput';
 import Modal from '@components/Modal';
 import CreateChannelModal from '@components/CreateChannelModal';
+import InviteWorkspaceModal from '@components/inviteWorkspaceModal';
+import InviteChannelModal from '@components/inviteChannelModal';
+import DMList from '@components/DMList';
+import ChannelList from '@components/ChannelList';
 
 const Workspace: React.VFC = () => {
   const { workspace } = useParams<{ workspace: string }>();
@@ -38,6 +42,8 @@ const Workspace: React.VFC = () => {
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
+  const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false);
+  const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
   const [newWorkspace, onNewWorkspaceChange, setNewWorkspace] = useInput('');
   const [newUrl, onNewUrlChange, setNewUrl] = useInput('');
   const onLogOut = () => {
@@ -78,6 +84,15 @@ const Workspace: React.VFC = () => {
       });
   };
 
+  const onReset = () => {
+    setShowCreateWorkspaceModal(false);
+    setShowCreateChannelModal(false);
+    setShowInviteWorkspaceModal(false);
+    setShowInviteChannelModal(false);
+    setNewWorkspace('');
+    setNewUrl('');
+  };
+
   const onCloseModal = () => {
     onReset();
   };
@@ -90,11 +105,12 @@ const Workspace: React.VFC = () => {
     setShowCreateChannelModal(true);
   };
 
-  const onReset = () => {
-    setShowCreateWorkspaceModal(false);
-    setShowCreateChannelModal(false);
-    setNewWorkspace('');
-    setNewUrl('');
+  const onClickInviteWorkspace = () => {
+    setShowInviteWorkspaceModal(true);
+  };
+
+  const onClickInviteChannel = () => {
+    setShowInviteChannelModal(true);
   };
 
   if (!userData) return <Redirect to="/login" />;
@@ -139,10 +155,13 @@ const Workspace: React.VFC = () => {
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
               <WorkspaceModal>
                 <h2>Slack</h2>
+                <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
                 <button onClick={onLogOut}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
+            <ChannelList />
+            <DMList />
             {channelData?.map((v) => (
               <div>{v.name}</div>
             ))}
@@ -172,6 +191,16 @@ const Workspace: React.VFC = () => {
         show={showCreateChannelModal}
         onCloseModal={onCloseModal}
         setShowCreateChannelModal={setShowCreateChannelModal}
+      />
+      <InviteWorkspaceModal
+        show={showInviteWorkspaceModal}
+        onCloseModal={onCloseModal}
+        setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
+      />
+      <InviteChannelModal
+        show={showInviteChannelModal}
+        onCloseModal={onCloseModal}
+        setShowInviteChannelModal={setShowInviteChannelModal}
       />
     </div>
   );
