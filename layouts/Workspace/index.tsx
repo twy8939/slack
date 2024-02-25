@@ -39,7 +39,7 @@ const Workspace: React.VFC = () => {
   const { workspace } = useParams<{ workspace: string }>();
   const { data: userData, error, mutate } = useSWR<IUser | false>('/api/users', fetcher);
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
-  const [socket, disconnect] = useSocket(workspace);
+  const [socket, disconnectSocket] = useSocket(workspace);
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
@@ -49,6 +49,7 @@ const Workspace: React.VFC = () => {
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
   const [newWorkspace, onNewWorkspaceChange, setNewWorkspace] = useInput('');
   const [newUrl, onNewUrlChange, setNewUrl] = useInput('');
+
   const onLogOut = () => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then((res) => {
       mutate();
@@ -115,6 +116,20 @@ const Workspace: React.VFC = () => {
   const onClickInviteChannel = () => {
     setShowInviteChannelModal(true);
   };
+
+  useEffect(() => {
+    return () => {
+      console.info('disconnect socket', workspace);
+      disconnectSocket();
+    };
+  }, [disconnectSocket, workspace]);
+
+  useEffect(() => {
+    if (channelData && userData) {
+      console.info('로그인하자', socket);
+      socket?.emit('login', { id: userData?.id, channels: channelData.map((v) => v.id) });
+    }
+  }, [socket, userData, channelData]);
 
   if (!userData) return <Redirect to="/login" />;
 
