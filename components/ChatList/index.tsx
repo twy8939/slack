@@ -2,7 +2,7 @@ import React, { VFC, useRef } from 'react';
 import { ChatZone, Section } from './styles';
 import { IDM } from '@typings/db';
 import Chat from '@components/Chat';
-import { Scrollbars } from 'react-custom-scrollbars';
+import Scrollbars from 'react-custom-scrollbars-2';
 
 interface Props {
   chatData?: IDM[];
