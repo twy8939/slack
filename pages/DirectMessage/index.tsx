@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Container, Header } from './styles';
 import gravatar from 'gravatar';
 import useSWRInfinite from 'swr/infinite';
@@ -34,8 +34,6 @@ const DirectMessage = () => {
   const onSubmitForm = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (chat?.trim()) {
-      console.log(chat, 'chat');
-
       axios
         .post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
           content: chat,
@@ -43,10 +41,17 @@ const DirectMessage = () => {
         .then(() => {
           mutateChat();
           setChat('');
+          scrollbarRef.current?.scrollToBottom();
         })
         .catch(console.error);
     }
   };
+
+  useEffect(() => {
+    if (chatData?.length === 1) {
+      scrollbarRef.current?.scrollToBottom();
+    }
+  }, [chatData]);
 
   if (!userData || !myData) return null;
 
