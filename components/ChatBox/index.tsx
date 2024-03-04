@@ -11,7 +11,7 @@ import gravatar from 'gravatar';
 interface Props {
   chat: string;
   onSubmitForm: (e: React.FormEvent<any>) => void;
-  onChangeChat: OnChangeHandlerFunc | undefined;
+  onChangeChat: (e: any) => void;
   placeholder?: string;
 }
 
