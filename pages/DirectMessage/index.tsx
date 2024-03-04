@@ -12,10 +12,12 @@ import { IDM } from '@typings/db';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars-2';
 import useSWR from 'swr';
+import useSocket from '@hooks/useSocket';
 
 const DirectMessage = () => {
-  const scrollbarRef = useRef<Scrollbars>(null);
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
+  const [socket] = useSocket(workspace);
+  const scrollbarRef = useRef<Scrollbars>(null);
   const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
   const { data: myData } = useSWR('/api/users', fetcher);
   const [chat, onChangeChat, setChat] = useInput('');
@@ -61,11 +63,36 @@ const DirectMessage = () => {
     }
   };
 
+  const onMessage = (data: IDM) => {
+    if (data.SenderId === Number(id) && myData.id !== Number(id)) {
+      mutateChat((chatData) => {
+        chatData?.[0].unshift(data);
+        return chatData;
+      }).then(() => {
+        if (scrollbarRef.current) {
+          if (
+            scrollbarRef.current.getScrollHeight() <
+            scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
+          ) {
+            scrollbarRef.current.scrollToBottom();
+          }
+        }
+      });
+    }
+  };
+
   useEffect(() => {
     if (chatData?.length === 1) {
       scrollbarRef.current?.scrollToBottom();
     }
   }, [chatData]);
+
+  useEffect(() => {
+    socket?.on('dm', onMessage);
+    return () => {
+      socket?.off('dm', onMessage);
+    };
+  }, []);
 
   if (!userData || !myData) return null;
 
