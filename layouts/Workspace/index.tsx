@@ -119,14 +119,12 @@ const Workspace: React.VFC = () => {
 
   useEffect(() => {
     return () => {
-      console.info('disconnect socket', workspace);
       disconnectSocket();
     };
   }, [disconnectSocket, workspace]);
 
   useEffect(() => {
     if (channelData && userData) {
-      console.info('로그인하자', socket);
       socket?.emit('login', { id: userData?.id, channels: channelData.map((v) => v.id) });
     }
   }, [socket, userData, channelData]);
@@ -140,18 +138,16 @@ const Workspace: React.VFC = () => {
           <RightMenu>
             <span onClick={onClickUserProfile}>
               <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.email} />
-              {showUserMenu && (
-                <Menu style={{ right: 0, top: 38 }} onCloseModal={onClickUserProfile}>
-                  <ProfileModal>
-                    <img src={gravatar.url(userData.nickname, { s: '36px', d: 'retro' })} alt={userData.nickname} />
-                    <div>
-                      <span id="profile-name">{userData.nickname}</span>
-                      <span id="profile-active">Active</span>
-                    </div>
-                  </ProfileModal>
-                  <LogOutButton onClick={onLogOut}>로그아웃</LogOutButton>
-                </Menu>
-              )}
+              <Menu show={showUserMenu} style={{ right: 0, top: 38 }} onCloseModal={onClickUserProfile}>
+                <ProfileModal>
+                  <img src={gravatar.url(userData.email, { s: '36px', d: 'retro' })} alt={userData.email} />
+                  <div>
+                    <span id="profile-name">{userData.nickname}</span>
+                    <span id="profile-active">Active</span>
+                  </div>
+                </ProfileModal>
+                <LogOutButton onClick={onLogOut}>로그아웃</LogOutButton>
+              </Menu>
             </span>
           </RightMenu>
         )}
