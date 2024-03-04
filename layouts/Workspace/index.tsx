@@ -117,11 +117,11 @@ const Workspace: React.VFC = () => {
     setShowInviteChannelModal(true);
   };
 
-  useEffect(() => {
-    return () => {
-      disconnectSocket();
-    };
-  }, [disconnectSocket, workspace]);
+  // useEffect(() => {
+  //   return () => {
+  //     disconnectSocket();
+  //   };
+  // }, [disconnectSocket, workspace]);
 
   useEffect(() => {
     if (channelData && userData) {
