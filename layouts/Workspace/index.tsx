@@ -1,6 +1,6 @@
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router';
 import useSWR from 'swr';
 import {
@@ -33,11 +33,14 @@ import InviteWorkspaceModal from '@components/inviteWorkspaceModal';
 import InviteChannelModal from '@components/inviteChannelModal';
 import DMList from '@components/DMList';
 import ChannelList from '@components/ChannelList';
+import useSocket from '@hooks/useSocket';
 
 const Workspace: React.VFC = () => {
   const { workspace } = useParams<{ workspace: string }>();
   const { data: userData, error, mutate } = useSWR<IUser | false>('/api/users', fetcher);
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
+  const [socket, disconnectSocket] = useSocket(workspace);
+
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
@@ -46,6 +49,7 @@ const Workspace: React.VFC = () => {
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
   const [newWorkspace, onNewWorkspaceChange, setNewWorkspace] = useInput('');
   const [newUrl, onNewUrlChange, setNewUrl] = useInput('');
+
   const onLogOut = () => {
     axios.post('/api/users/logout', null, { withCredentials: true }).then((res) => {
       mutate();
@@ -113,6 +117,18 @@ const Workspace: React.VFC = () => {
     setShowInviteChannelModal(true);
   };
 
+  // useEffect(() => {
+  //   return () => {
+  //     disconnectSocket();
+  //   };
+  // }, [disconnectSocket, workspace]);
+
+  useEffect(() => {
+    if (channelData && userData) {
+      socket?.emit('login', { id: userData?.id, channels: channelData.map((v) => v.id) });
+    }
+  }, [socket, userData, channelData]);
+
   if (!userData) return <Redirect to="/login" />;
 
   return (
@@ -121,19 +137,17 @@ const Workspace: React.VFC = () => {
         {userData && (
           <RightMenu>
             <span onClick={onClickUserProfile}>
-              <ProfileImg src={gravatar.url(userData.nickname, { s: '28px', d: 'retro' })} alt={userData.nickname} />
-              {showUserMenu && (
-                <Menu style={{ right: 0, top: 38 }} onCloseModal={onClickUserProfile}>
-                  <ProfileModal>
-                    <img src={gravatar.url(userData.nickname, { s: '36px', d: 'retro' })} alt={userData.nickname} />
-                    <div>
-                      <span id="profile-name">{userData.nickname}</span>
-                      <span id="profile-active">Active</span>
-                    </div>
-                  </ProfileModal>
-                  <LogOutButton onClick={onLogOut}>로그아웃</LogOutButton>
-                </Menu>
-              )}
+              <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.email} />
+              <Menu show={showUserMenu} style={{ right: 0, top: 38 }} onCloseModal={onClickUserProfile}>
+                <ProfileModal>
+                  <img src={gravatar.url(userData.email, { s: '36px', d: 'retro' })} alt={userData.email} />
+                  <div>
+                    <span id="profile-name">{userData.nickname}</span>
+                    <span id="profile-active">Active</span>
+                  </div>
+                </ProfileModal>
+                <LogOutButton onClick={onLogOut}>로그아웃</LogOutButton>
+              </Menu>
             </span>
           </RightMenu>
         )}

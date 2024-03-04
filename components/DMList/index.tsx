@@ -5,6 +5,7 @@ import { useParams } from 'react-router';
 import useSWR from 'swr';
 import { CollapseButton } from './styles';
 import { NavLink } from 'react-router-dom';
+import useSocket from '@hooks/useSocket';
 
 const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
@@ -17,7 +18,7 @@ const DMList = () => {
     fetcher,
   );
 
-  // const [socket] = useSocket(workspace);
+  const [socket] = useSocket(workspace);
   const [channelCollapse, setChannelCollapse] = useState(false);
   const [onlineList, setOnlineList] = useState<number[]>([]);
 
@@ -26,20 +27,18 @@ const DMList = () => {
   }, []);
 
   useEffect(() => {
-    console.log('DMList: workspace 바꼈다', workspace);
     setOnlineList([]);
   }, [workspace]);
 
-  // useEffect(() => {
-  //   socket?.on('onlineList', (data: number[]) => {
-  //     setOnlineList(data);
-  //   });
-  //   console.log('socket on dm', socket?.hasListeners('dm'), socket);
-  //   return () => {
-  //     console.log('socket off dm', socket?.hasListeners('dm'));
-  //     socket?.off('onlineList');
-  //   };
-  // }, [socket]);
+  useEffect(() => {
+    socket?.on('onlineList', (data: number[]) => {
+      setOnlineList(data);
+    });
+    // console.log('socket on dm', socket?.hasListeners('dm'), socket);
+    return () => {
+      socket?.off('onlineList');
+    };
+  }, [socket]);
 
   return (
     <>
@@ -59,15 +58,13 @@ const DMList = () => {
             const isOnline = onlineList.includes(member.id);
             return (
               <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
-                <i
-                  className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
-                    isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
-                  }`}
-                  aria-hidden="true"
-                  data-qa="presence_indicator"
-                  data-qa-presence-self="false"
-                  data-qa-presence-active="false"
-                  data-qa-presence-dnd="false"
+                <span
+                  style={{
+                    width: '5px',
+                    height: '5px',
+                    marginRight: '5px',
+                    backgroundColor: isOnline ? 'green' : 'red',
+                  }}
                 />
                 <span className={member.id === userData?.id ? 'bold' : ''}>{member.nickname}</span>
                 {member.id === userData?.id && <span> (나)</span>}
