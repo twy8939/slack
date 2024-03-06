@@ -1,12 +1,12 @@
 import React, { MutableRefObject, forwardRef } from 'react';
 import { ChatZone, Section, StickyHeader } from './styles';
-import { IDM } from '@typings/db';
+import { IChat, IDM } from '@typings/db';
 import Chat from '@components/Chat';
 import Scrollbars, { positionValues } from 'react-custom-scrollbars-2';
 
 interface Props {
-  chatSections: { [KEY: string]: IDM[] };
-  setSize: (f: (indeX: number) => number) => Promise<IDM[][] | undefined>;
+  chatSections: { [KEY: string]: (IDM | IChat)[] };
+  setSize: (f: (indeX: number) => number) => Promise<(IDM | IChat)[][] | undefined>;
   isReachingEnd: boolean;
 }
 
