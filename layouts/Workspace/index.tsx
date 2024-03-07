@@ -156,7 +156,7 @@ const Workspace: React.VFC = () => {
         <Workspaces>
           {userData?.Workspaces.map((ws) => {
             return (
-              <Link key={ws.id} to={`/workspace/${12}/channel/일반`}>
+              <Link key={ws.id} to={`/workspace/${ws.url}/channel`}>
                 <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
               </Link>
             );
