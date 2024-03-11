@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Container, Header } from './styels';
+import React, { DragEvent, useEffect, useRef, useState } from 'react';
+import { Container, DragOver, Header } from './styels';
 import ChatList from '@components/ChatList';
 import ChatBox from '@components/ChatBox';
 import { useInput } from '@hooks/useInput';
@@ -8,7 +8,7 @@ import { useParams } from 'react-router';
 import makeSection from '@utils/makeSection';
 import gravatar from 'gravatar';
 import useSocket from '@hooks/useSocket';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import Scrollbars from 'react-custom-scrollbars-2';
 import fetcher from '@utils/fetcher';
 import useSWRInfinite from 'swr/infinite';
@@ -37,6 +37,7 @@ const Channel = () => {
   );
 
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
 
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
@@ -72,7 +73,7 @@ const Channel = () => {
   };
 
   const onMessage = (data: IChat) => {
-    if (data.Channel.name === channel && myData.id !== data.UserId) {
+    if (data.Channel.name === channel && (data.content.startsWith('uploads\\') || myData.id !== data.UserId)) {
       mutateChat((chatData) => {
         chatData?.[0].unshift(data);
         return chatData;
@@ -97,6 +98,34 @@ const Channel = () => {
     setShowInviteChannelModal(false);
   };
 
+  const onDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const formData = new FormData();
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind === 'file') {
+          const file = e.dataTransfer.items[i].getAsFile();
+
+          if (file) formData.append('image', file);
+        }
+      }
+    } else {
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        formData.append('image', e.dataTransfer.files[i]);
+      }
+    }
+
+    axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
+      setDragOver(false);
+      mutateChat();
+    });
+  };
+
+  const onDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
   useEffect(() => {
     if (chatData?.length === 1) {
       scrollbarRef.current?.scrollToBottom();
@@ -115,7 +144,7 @@ const Channel = () => {
   const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
 
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         <span>{channel}</span>
         <div className="header-right">
@@ -134,6 +163,7 @@ const Channel = () => {
       </Header>
       <ChatList chatSections={chatSections} ref={scrollbarRef} setSize={setSize} isReachingEnd={isReachingEnd} />
       <ChatBox chat={chat} onChangeChat={onChangeChat} onSubmitForm={onSubmitForm} />
+      {dragOver && <DragOver>업로드 !</DragOver>}
       <InviteChannelModal
         show={showInviteChannelModal}
         onCloseModal={onCloseModal}
