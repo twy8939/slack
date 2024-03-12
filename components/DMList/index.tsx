@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { CollapseButton } from './styles';
 import { NavLink } from 'react-router-dom';
 import useSocket from '@hooks/useSocket';
+import EachDM from '@components/EachDM';
 
 const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
@@ -56,20 +57,7 @@ const DMList = () => {
         {!channelCollapse &&
           memberData?.map((member) => {
             const isOnline = onlineList.includes(member.id);
-            return (
-              <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
-                <span
-                  style={{
-                    width: '5px',
-                    height: '5px',
-                    marginRight: '5px',
-                    backgroundColor: isOnline ? 'green' : 'red',
-                  }}
-                />
-                <span className={member.id === userData?.id ? 'bold' : ''}>{member.nickname}</span>
-                {member.id === userData?.id && <span> (나)</span>}
-              </NavLink>
-            );
+            return <EachDM key={member.id} member={member} isOnline={isOnline} />;
           })}
       </div>
     </>
