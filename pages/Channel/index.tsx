@@ -58,6 +58,7 @@ const Channel = () => {
         });
         return prevChatData;
       }, false).then(() => {
+        localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
         setChat('');
         scrollbarRef.current?.scrollToBottom();
       });
@@ -117,6 +118,7 @@ const Channel = () => {
 
     axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
       setDragOver(false);
+      localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
       mutateChat();
     });
   };
@@ -138,6 +140,10 @@ const Channel = () => {
       socket?.off('message', onMessage);
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(`${workspace}-${channel}`, new Date().getTime().toString());
+  }, [workspace, channel]);
 
   if (!myData) return null;
 
